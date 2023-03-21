@@ -7,7 +7,7 @@ use fuser::{FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, R
             FUSE_ROOT_ID};
 use libc::ENOENT;
 use std::ffi::OsStr;
-use std::os::unix::io::AsRawHandle;
+use std::os::unix::io::AsRawFd;
 use std::str;
 use std::time::{Duration, UNIX_EPOCH};
 use reqwest::blocking::Response;
@@ -239,7 +239,7 @@ impl Filesystem for HelloFS {
     fn open(&mut self, req: &Request, inode: u64, flags: i32, reply: ReplyOpen) {
         let inode = 7995404;
         debug!("open() called for {:?}", inode);
-        reply.opened(std::fs::File::open("test.txt").unwrap().as_raw_handle() as u64, 0)
+        reply.opened(std::fs::File::open("test.txt").unwrap().as_raw_fd() as u64, 0)
     }
 
     fn readdir(
