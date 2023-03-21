@@ -188,7 +188,9 @@ impl Filesystem for HelloFS {
                 Ok(data) => {
                     // println!("{}", &data.bytes().unwrap().len());
                     // reply.data(&data.text().unwrap().as_bytes()[..size as usize]);
-                    reply.data(&data.bytes().unwrap());
+                    let resp_data = &data.bytes().unwrap();
+                    println!("{:#?} Len of response before slice" ,resp_data.len());
+                    reply.data(resp_data);
                 }
                 Err(e) => {}
             }
