@@ -17,6 +17,8 @@ use reqwest::header::{
 };
 use fernet;
 use fuser::consts::FOPEN_DIRECT_IO;
+use serde::de::Unexpected::Bytes;
+use tokio::net::windows::named_pipe::PipeMode::Byte;
 
 const FMODE_EXEC: i32 = 0x20;
 const TTL: Duration = Duration::from_secs(1); // 1 second
@@ -217,8 +219,9 @@ impl Filesystem for HelloFS {
                     let key = "E-bxU5geNyrojsSg2mqn5Yv1_veAczf0xaffrFJBSjk=";
                     let fernet = fernet::Fernet::new(&key).unwrap();
                     let decrypted_data = fernet.decrypt(&data.text().unwrap()).unwrap();
+                    let test = str::from_utf8(&decrypted_data).unwrap();
                     // reply.data(&decrypted_data[0 as usize..size as usize]);
-                    println!("{:#?}", &decrypted_data[0 as usize..size as usize])
+                    println!("{:#?}", test)
                 }
                 Err(e) => {}
             }
