@@ -11,17 +11,19 @@ RUN apt update
 RUN apt -y install fuse libfuse-dev pkg-config
 COPY --from=planner /app/recipe.json recipe.json
 # Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --release --recipe-path recipe.json
+RUN cargo chef cook --recipe-path recipe.json
 # Build application
 COPY . .
-RUN cargo build --release --bin hello_world_rust
+RUN cargo build --bin hello_world_rust
 
 # Main Build Layer
-FROM debian:bullseye-slim AS runtime
+FROM ubuntu AS runtime
 RUN apt update
-RUN apt -y install fuse libfuse-dev pkg-config
+RUN apt -y install fuse3 libfuse-dev pkg-config openssl libssl-dev wget
+RUN wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.17_amd64.deb
+RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2.17_amd64.deb
 WORKDIR app
 RUN mkdir /app/test
-COPY --from=builder /app/target/release/hello_world_rust /usr/local/bin
+COPY --from=builder /app/target/debug/hello_world_rust /usr/local/bin
 
 ENTRYPOINT ["/usr/local/bin/hello_world_rust"]
