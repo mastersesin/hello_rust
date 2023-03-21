@@ -218,7 +218,8 @@ impl Filesystem for HelloFS {
                     let decrypted_data = fernet.decrypt(&data.text().unwrap()).unwrap();
                     let test = String::from_utf8_lossy(&decrypted_data);
                     // reply.data(&decrypted_data[0 as usize..size as usize]);
-                    println!("{:x?}", test)
+                    println!("{:x?}", test);
+                    println!("{:x?}", test.len());
                 }
                 Err(e) => {}
             }
