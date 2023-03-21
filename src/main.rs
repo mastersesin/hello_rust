@@ -178,7 +178,6 @@ impl Filesystem for HelloFS {
                     let key = "E-bxU5geNyrojsSg2mqn5Yv1_veAczf0xaffrFJBSjk=";
                     let fernet = fernet::Fernet::new(&key).unwrap();
                     let decrypted_data = fernet.decrypt(&data.text().unwrap()).unwrap();
-                    println!("{:#?} Len of response before slice" ,decrypted_data.len());
                     reply.data(&decrypted_data[0 as usize..size as usize]);
                 }
                 Err(e) => {}
@@ -189,8 +188,7 @@ impl Filesystem for HelloFS {
                     // println!("{}", &data.bytes().unwrap().len());
                     // reply.data(&data.text().unwrap().as_bytes()[..size as usize]);
                     let resp_data = &data.bytes().unwrap();
-                    println!("{:#?} Len of response before slice" ,resp_data.len());
-                    reply.data(resp_data);
+                    reply.data(&resp_data[0 as usize..size as usize]);
                 }
                 Err(e) => {}
             }
