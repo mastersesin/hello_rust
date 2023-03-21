@@ -17,7 +17,6 @@ use reqwest::header::{
 };
 use fernet;
 use fuser::consts::FOPEN_DIRECT_IO;
-use log::{debug, warn};
 
 const FMODE_EXEC: i32 = 0x20;
 const TTL: Duration = Duration::from_secs(1); // 1 second
@@ -238,7 +237,7 @@ impl Filesystem for HelloFS {
 
     fn open(&mut self, req: &Request, inode: u64, flags: i32, reply: ReplyOpen) {
         let inode = 7995404;
-        debug!("open() called for {:?}", inode);
+        println!("open() called for {:?}", inode);
         reply.opened(std::fs::File::open("test.txt").unwrap().as_raw_fd() as u64, 0)
     }
 
