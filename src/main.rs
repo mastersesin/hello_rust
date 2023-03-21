@@ -230,7 +230,7 @@ impl Filesystem for HelloFS {
                     // reply.data(&data.text().unwrap().as_bytes()[..size as usize]);
                     let resp_data = &data.bytes().unwrap();
                     reply.data(&resp_data);
-                    // println!("{:x?}", resp_data)
+                    println!("{:x?}", resp_data)
                 }
                 Err(e) => {}
             }
