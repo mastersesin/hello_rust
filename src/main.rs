@@ -7,7 +7,7 @@ use fuser::{FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, R
             FUSE_ROOT_ID};
 use libc::ENOENT;
 use std::ffi::OsStr;
-use std::os::windows::io::AsRawHandle;
+use std::os::unix::io::AsRawHandle;
 use std::str;
 use std::time::{Duration, UNIX_EPOCH};
 use reqwest::blocking::Response;
