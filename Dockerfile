@@ -25,6 +25,5 @@ RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2.17_amd64.deb
 WORKDIR app
 RUN mkdir /app/test
 COPY --from=builder /app/target/debug/hello_world_rust /usr/local/bin
-COPY ./test.bin /app
 
 ENTRYPOINT ["/usr/local/bin/hello_world_rust"]
