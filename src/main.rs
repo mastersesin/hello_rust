@@ -17,8 +17,6 @@ use reqwest::header::{
 };
 use fernet;
 use fuser::consts::FOPEN_DIRECT_IO;
-use serde::de::Unexpected::Bytes;
-use tokio::net::windows::named_pipe::PipeMode::Byte;
 
 const FMODE_EXEC: i32 = 0x20;
 const TTL: Duration = Duration::from_secs(1); // 1 second
