@@ -1,9 +1,13 @@
 use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
 use std::error::Error;
-use fuser::{FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry, Request, ReplyOpen};
+use fuser::{FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry, Request, ReplyOpen,
+            KernelConfig, ReplyCreate,
+            ReplyEmpty, ReplyStatfs, ReplyWrite, ReplyXattr, TimeOrNow,
+            FUSE_ROOT_ID};
 use libc::ENOENT;
 use std::ffi::OsStr;
+use std::os::windows::io::AsRawHandle;
 use std::str;
 use std::time::{Duration, UNIX_EPOCH};
 use reqwest::blocking::Response;
@@ -13,7 +17,9 @@ use reqwest::header::{
 };
 use fernet;
 use fuser::consts::FOPEN_DIRECT_IO;
+use log::{debug, warn};
 
+const FMODE_EXEC: i32 = 0x20;
 const TTL: Duration = Duration::from_secs(1); // 1 second
 
 const HELLO_DIR_ATTR: FileAttr = FileAttr {
@@ -57,6 +63,41 @@ const HELLO_TXT_ATTR: FileAttr = FileAttr {
 };
 
 struct HelloFS;
+
+pub fn check_access(
+    file_uid: u32,
+    file_gid: u32,
+    file_mode: u16,
+    uid: u32,
+    gid: u32,
+    mut access_mask: i32,
+) -> bool {
+    // F_OK tests for existence of file
+    if access_mask == libc::F_OK {
+        return true;
+    }
+    let file_mode = i32::from(file_mode);
+
+    // root is allowed to read & write anything
+    if uid == 0 {
+        // root only allowed to exec if one of the X bits is set
+        access_mask &= libc::X_OK;
+        access_mask -= access_mask & (file_mode >> 6);
+        access_mask -= access_mask & (file_mode >> 3);
+        access_mask -= access_mask & file_mode;
+        return access_mask == 0;
+    }
+
+    if uid == file_uid {
+        access_mask -= access_mask & (file_mode >> 6);
+    } else if gid == file_gid {
+        access_mask -= access_mask & (file_mode >> 3);
+    } else {
+        access_mask -= access_mask & file_mode;
+    }
+
+    return access_mask == 0;
+}
 
 fn calc(offset: i64, length: u32) -> (&'static str, i64, i64) {
     let our_map: BTreeMap<i64, &str> =
@@ -198,49 +239,7 @@ impl Filesystem for HelloFS {
     fn open(&mut self, req: &Request, inode: u64, flags: i32, reply: ReplyOpen) {
         let inode = 7995404;
         debug!("open() called for {:?}", inode);
-        let (access_mask, read, write) = match flags & libc::O_ACCMODE {
-            libc::O_RDONLY => {
-                // Behavior is undefined, but most filesystems return EACCES
-                if flags & libc::O_TRUNC != 0 {
-                    reply.error(libc::EACCES);
-                    return;
-                }
-                if flags & FMODE_EXEC != 0 {
-                    // Open is from internal exec syscall
-                    (libc::X_OK, true, false)
-                } else {
-                    (libc::R_OK, true, false)
-                }
-            }
-            libc::O_WRONLY => (libc::W_OK, false, true),
-            libc::O_RDWR => (libc::R_OK | libc::W_OK, true, true),
-            // Exactly one access mode flag must be specified
-            _ => {
-                reply.error(libc::EINVAL);
-                return;
-            }
-        };
-        match self.get_inode(inode) {
-            Ok(mut attr) => {
-                if check_access(
-                    attr.uid,
-                    attr.gid,
-                    attr.mode,
-                    req.uid(),
-                    req.gid(),
-                    access_mask,
-                ) {
-                    attr.open_file_handles += 1;
-                    self.write_inode(&attr);
-                    let open_flags = if self.direct_io { FOPEN_DIRECT_IO } else { 0 };
-                    reply.opened(self.allocate_next_file_handle(read, write), open_flags);
-                } else {
-                    reply.error(libc::EACCES);
-                }
-                return;
-            }
-            Err(error_code) => reply.error(error_code),
-        }
+        reply.opened(std::fs::File::open("test.txt").unwrap().as_raw_handle() as u64, 0)
     }
 
     fn readdir(
