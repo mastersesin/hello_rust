@@ -272,6 +272,7 @@ fn main() {
     let mut options = vec![MountOption::RO, MountOption::FSName("hello".to_string())];
     options.push(MountOption::AutoUnmount);
     options.push(MountOption::AllowRoot);
+    options.push(MountOption::Async);
     options.push(MountOption::CUSTOM("direct_io".parse().unwrap()));
     fuser::mount2(HelloFS, mountpoint, (&options).borrow()).unwrap();
 }
