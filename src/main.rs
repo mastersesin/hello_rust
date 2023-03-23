@@ -154,7 +154,7 @@ fn calc(offset: i64, length: u32) -> (&'static str, i64, i64) {
         );
     let mut current_start_byte = 0;
     for (end_byte, file_id) in &our_map {
-        println!("{} end_byte", end_byte);
+        // println!("{} end_byte", end_byte);
         let x = offset;
         let y = offset + length as i64 - 1;
         if current_start_byte <= x && y <= *end_byte {
@@ -230,7 +230,7 @@ impl Filesystem for HelloFS {
                     // reply.data(&data.text().unwrap().as_bytes()[..size as usize]);
                     let resp_data = &data.bytes().unwrap();
                     reply.data(&resp_data);
-                    println!("{:x?}", resp_data)
+                    // println!("{:x?}", resp_data)
                 }
                 Err(e) => {}
             }
